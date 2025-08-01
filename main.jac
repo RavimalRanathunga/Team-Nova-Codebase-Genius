@@ -1,56 +1,95 @@
+import from mtllm {Model}
+import from utils {validate_github_url,is_path_valid_up_to_parent}
+
+glob llm = Model(model_name = "gemini/gemini-2.0-flash");
+
+enum AgentType
+{
+    MapperAgent="MapperAgent",
+    AnalyzerAgent="AnalyzerAgent",
+    DocGenie="DocGenie"
+}
+
+node Agent
+{
+    has agent_type:AgentType;
+}
+
 node managerAgent
 {
     has folder_path:str="";
     has github_url:str="";
+    has message:str="";
 
+    def decide (message:str) -> AgentType by llm(method="Reason");
+
+    can route with codeBaseGenius entry
+    {
+        response:AgentType = self.decide(self.message);
+        visit[-->](`?Agent)(?agent_type==response);
+    }
 }
 
-node repoMapperAgent 
+node repoMapperAgent(Agent)
 {
-  
+    has agent_type:AgentType=AgentType.MapperAgent;
+
+    can map_repo with codeBaseGenius entry
+    {
+       
+    }
 }
 
-node codeAnalyzerAgent
+node codeAnalyzerAgent(Agent)
 {
+    has agent_type:AgentType=AgentType.AnalyzerAgent;
 
+    can analyze_code with codeBaseGenius entry
+    {
+
+    }
 }
 
-node docGenieAgent
+node docGenieAgent(Agent)
 {
+    has agent_type:AgentType=AgentType.DocGenie;
 
+    can generate_docs with codeBaseGenius entry
+    {
+        
+    }
 }
 
 walker codeBaseGenius
 {
     has chat_history:list[dict];
 
-    can route with managerAgent entry
-    {
-        
-    }
-
-    can map_repo with repoMapperAgent entry
-    {
-       
-    }
-
-    can analyze_code with codeAnalyzerAgent entry
-    {
-
-    }
-
-    can generate_docs with docGenieAgent entry
-    {
-        
-    }
 }
 
 with entry
 {
+    while True
+    {
     github_url=input("Enter GitHub URL:");
     folder_path=input("Enter folder path to clone the repository:");
 
+    if not validate_github_url(github_url)
+    {
+        print("Invalid GitHub URL");
+        break;
+    }
+
+    if not is_path_valid_up_to_parent(folder_path)
+    {
+        print("Invalid folder path");
+        break;
+    }
+
     manager_agent=root++>managerAgent(folder_path=folder_path,github_url=github_url);
+    manager_agent++>repoMapperAgent();
+    manager_agent++>codeAnalyzerAgent();
+    manager_agent++>docGenieAgent();
 
     manager_agent spawn codeBaseGenius([{"user":f"{github_url}"}]);
+    }
 }
