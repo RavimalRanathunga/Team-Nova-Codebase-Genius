@@ -1,5 +1,7 @@
 import from mtllm {Model}
 import from utils {validate_github_url,is_path_valid_up_to_parent}
+import os;
+import from git {Repo}
 
 glob llm = Model(model_name = "gemini/gemini-2.0-flash");
 
@@ -17,9 +19,33 @@ node Agent
 
 node managerAgent
 {
-    has folder_path:str="";
+    has doc_path:str="";
     has github_url:str="";
     has message:str="";
+    has repo_path:str="";
+
+    
+    def get_repo_name_from_url(github_url) -> str
+    {
+        return github_url.rstrip("/").split("/")[-1].replace(".git", "");
+    }
+
+    def clone_repo_to_current_dir(github_url) -> str
+    {
+        repo_name = get_repo_name_from_url(github_url);
+        target_path = os.path.join(os.getcwd(), repo_name);
+
+        if os.path.exists(target_path){
+            return (f"Repository '{repo_name}' already exists in current directory.");
+        }
+        else{
+            self.repo_path=target_path;
+            print(f"Cloning '{repo_name}' into current directory...");
+            Repo.clone_from(repo_url, target_path);
+            print("Cloning complete.");
+        }
+        return target_path
+    }
 
     def decide (message:str) -> AgentType by llm(method="Reason");
 
@@ -53,6 +79,7 @@ node codeAnalyzerAgent(Agent)
 node docGenieAgent(Agent)
 {
     has agent_type:AgentType=AgentType.DocGenie;
+    has doc_path:str="";
 
     can generate_docs with codeBaseGenius entry
     {
@@ -71,7 +98,7 @@ with entry
     while True
     {
     github_url=input("Enter GitHub URL:");
-    folder_path=input("Enter folder path to clone the repository:");
+    doc_path=input("Enter folder path to save documents:");
 
     if not validate_github_url(github_url)
     {
@@ -79,16 +106,16 @@ with entry
         break;
     }
 
-    if not is_path_valid_up_to_parent(folder_path)
+    if not is_path_valid_up_to_parent(doc_path)
     {
         print("Invalid folder path");
         break;
     }
 
-    manager_agent=root++>managerAgent(folder_path=folder_path,github_url=github_url);
+    manager_agent=root++>managerAgent(doc_path=doc_path,github_url=github_url);
     manager_agent++>repoMapperAgent();
     manager_agent++>codeAnalyzerAgent();
-    manager_agent++>docGenieAgent();
+    manager_agent++>docGenieAgent(doc_path=doc_path);
 
     manager_agent spawn codeBaseGenius([{"user":f"{github_url}"}]);
     }

@@ -3,3 +3,5 @@ mtllm
 mtllm[google]
 jac-cloud
 jac-streamlit
+gitpython 
+requests
