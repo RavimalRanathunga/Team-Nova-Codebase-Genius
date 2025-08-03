@@ -1,7 +1,7 @@
 import from mtllm {Model}
 import from utils {validate_github_url,is_path_valid_up_to_parent}
 import os;
-import from git {Repo}
+import from tools {get_repo_name_from_url,clone_repo_to_current_dir}
 
 glob llm = Model(model_name = "gemini/gemini-2.0-flash");
 
@@ -18,52 +18,34 @@ node Agent
 }
 
 
-"""
-Tool to get repo name from a given github URL
-Example input to the tool
-{"github_url":"github_url"} 
-"""
-def get_repo_name_from_url(github_url:str) -> str
-{
-        return github_url.rstrip("/").split("/")[-1].replace(".git", "");
-}
-
-"""
-use this tool to clone a github repository
-Example input to the tool
-{"github_url":"github_url","repo_path","repo_path","repo_name","repo_name"}
-"""
-def clone_repo_to_current_dir(github_url:str,repo_path:str,repo_name:str) -> str
-{
-    if os.path.exists(repo_path)
-    {
-        return (f"Repository '{repo_name}' already exists in current directory.");
-    }
-    else
-    {
-        print(f"Cloning '{repo_name}' into current directory...");
-        Repo.clone_from(github_url, repo_path);
-        print("Cloning complete.");
-    }
-    return repo_path;
-}
-
 node managerAgent
 {
     has doc_path:str="";
     has github_url:str="";
     has message:str=f"As a supervisor agent your first task is to clone a github repository from provided {github_url} if first step is fulfiled if and only if then navigate to the next Agent using AgentType and stop the program.";
-    has repo_path:str=os.getcwd();
+    has repo_path:str="";
 
     """use to decide the next step of the agent"""
     def decide (message:str) -> AgentType by llm(verbose=True,method="ReAct");
+
+    """Tool to clone the repositories from the github"""
     def clone_github_repository(github_url:str,repo_path:str) -> str by llm(tools=[clone_repo_to_current_dir,get_repo_name_from_url],verbose=True,method="ReAct");
 
     can route with codeBaseGenius entry
     {
-        print(self.clone_github_repository(self.github_url,self.repo_path));
-        response:AgentType = self.decide(self.message);
-        visit[-->](`?Agent)(?agent_type==response);
+        if os.path.exists(self.repo_path)
+        {
+            response:AgentType = self.decide(self.message);
+            print(f"Navigating to {response}");
+            visit[-->](`?Agent)(?agent_type==response);
+        }
+        else
+        {
+            print(self.clone_github_repository(self.github_url,self.repo_path));
+            response:AgentType = self.decide(self.message);
+            print(f"Navigating to {response}");
+            visit[-->](`?Agent)(?agent_type==response);
+        }
     }
 }
 
