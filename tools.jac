@@ -30,3 +30,16 @@ def clone_repo_to_current_dir(github_url:str,repo_path:str,repo_name:str) -> str
     }
     return repo_path;
 }
+
+def load_gitignore(repo_path: str) -> str
+{
+    """
+    Load .gitignore patterns into a PathSpec object.
+    """
+    gitignore_path = os.path.join(repo_path, ".gitignore");
+    if not os.path.exists(gitignore_path){
+        return "No .gitignore";
+    }
+    
+    return gitignore_path;
+}
