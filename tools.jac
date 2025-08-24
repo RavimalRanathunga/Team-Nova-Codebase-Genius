@@ -172,3 +172,13 @@ def extract_readmes(structure: Dict[str,Any]) -> dict[str,str]
     traverse(structure);
     return readme_contents;
 }
+
+def create_readme_file(doc_path:str,content:str,folder_name:str) -> None
+{
+    path = os.path.join(doc_path, f"{folder_name}_README.md");
+    print(f"Creating README file at: {path}");
+    with open(path,"w",encoding="utf-8") as f
+    {
+        f.write(content);
+    }
+}

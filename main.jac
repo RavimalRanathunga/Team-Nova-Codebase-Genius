@@ -1,17 +1,18 @@
 import from mtllm {Model}
 import from utils {validate_github_url,is_path_valid_up_to_parent,dict_to_tree,message}
 import os;
-import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes}
+import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes,create_readme_file}
 import from typing {Dict,Any}
 import from pathspec {PathSpec}
+import from build_tree_sitter {traverse_and_parse}
 
 glob llm = Model(model_name = "gemini/gemini-2.0-flash");
 
 enum AgentType
 {
-    MapperAgent="MapperAgent",
-    AnalyzerAgent="AnalyzerAgent",
-    DocGenie="DocGenie"
+    MapperAgent = "MapperAgent",
+    AnalyzerAgent = "AnalyzerAgent",
+    DocGenie = "DocGenie"
 }
 
 node Agent
@@ -41,6 +42,7 @@ node managerAgent
         {
             response:AgentType = self.decide(self.message,visitor.get_last_five_messages());
             print(f"Navigating to {response}");
+            
             chat_history_message:dict[str,str] = self.generate_chat_history_message(f"Navigating to {response}");
             visitor.chat_history.append(chat_history_message);
 
@@ -51,6 +53,7 @@ node managerAgent
             repository_clone_message:str = self.clone_github_repository(self.github_url,self.repo_path);
             response:AgentType = self.decide(self.message,visitor.get_last_five_messages());
             print(f"Navigating to {response}");
+
             chat_history_message:dict[str,str] = self.generate_chat_history_message(repository_clone_message + f"Navigating to {response}");
             visitor.chat_history.append(chat_history_message);
 
@@ -61,8 +64,8 @@ node managerAgent
 
 node repoMapperAgent(Agent)
 {
-    has agent_type:AgentType=AgentType.MapperAgent;
-    has repo_path:str="";
+    has agent_type:AgentType = AgentType.MapperAgent;
+    has repo_path:str = "";
 
     """Generate a message about your actions to add to the chat_history"""
     def generate_chat_history_message(message:str) -> dict[str,str] by llm();
@@ -96,24 +99,39 @@ node repoMapperAgent(Agent)
 
 node codeAnalyzerAgent(Agent)
 {
-    has agent_type:AgentType=AgentType.AnalyzerAgent;
+    has agent_type:AgentType = AgentType.AnalyzerAgent;
 
     can analyze_code with codeBaseGenius entry
     {
-        print("analyzer");
-        disengage;
+        analysis:dict = traverse_and_parse(visitor.code_structure);
+        print("Code Analysis Complete.");
+        visitor.chat_history.append({"action":"Code Analysis Complete."});
+        visitor.code_analysis = analysis;
+    
+        visit[<--];
     }
 }
 
 node docGenieAgent(Agent)
 {
-    has agent_type:AgentType=AgentType.DocGenie;
-    has doc_path:str="";
+    has agent_type:AgentType = AgentType.DocGenie;
+    has doc_path:str = "";
+
+    def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict) -> str by llm(tools=[create_readme_file],verbose=True,method="ReAct");
 
     can generate_docs with codeBaseGenius entry
     {
-        print("docgenie");
-        disengage;
+        if not os.path.exists(self.doc_path)
+        {
+            os.mkdir(self.doc_path);
+            self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis);
+            print("Documentation Generation Complete.");
+        }
+        else
+        {
+            self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis);
+            print("Documentation Generation Complete.");
+        }
     }
 }
 
@@ -123,6 +141,7 @@ walker codeBaseGenius
     has code_structure:Dict[str,Any] = {};
     has folders_dict:dict[str,str] = {};
     has readme_contents:dict[str,str] = {};
+    has codde_analysis:dict = {};
 
     def get_last_five_messages() -> list[dict]
     {
@@ -142,15 +161,15 @@ with entry
 {
     while True
     {
-        github_url=input("Enter GitHub URL:");
-        doc_path=input("Enter folder path to save documents(or keep blank to create a docs folder inside the repo):\n");
+        github_url = input("Enter GitHub URL:");
+        doc_path = input("Enter folder path to save documents(or keep blank to create a docs folder inside the repo):\n");
 
-        repo_name:str=get_repo_name_from_url(github_url);
-        repo_path:str=os.path.join(os.getcwd(),repo_name);
+        repo_name:str = get_repo_name_from_url(github_url);
+        repo_path:str = os.path.join(os.getcwd(),repo_name);
 
         if(len(doc_path) == 0)
         {
-            doc_path=os.path.join(repo_path,"docs");
+            doc_path = os.path.join(repo_path,"docs");
             print(f"Document path set to {doc_path}");
         }
         else
@@ -168,7 +187,7 @@ with entry
             break;
         }
 
-        manager_agent=root++>managerAgent(github_url=github_url,repo_path=repo_path);
+        manager_agent = root++>managerAgent(github_url=github_url,repo_path=repo_path);
         manager_agent++>repoMapperAgent(repo_path=repo_path);
         manager_agent++>codeAnalyzerAgent();
         manager_agent++>docGenieAgent(doc_path=doc_path);
