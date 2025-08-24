@@ -1,0 +1,3 @@
+{"path": "math_utils.py", "ok": true, "error": null, "ast_json_path": "artifacts/say_hello-ast/files/math_utils.py.ast.json", "n_nodes": 23}
+{"path": "main.py", "ok": true, "error": null, "ast_json_path": "artifacts/say_hello-ast/files/main.py.ast.json", "n_nodes": 50}
+{"path": "greeter.py", "ok": true, "error": null, "ast_json_path": "artifacts/say_hello-ast/files/greeter.py.ast.json", "n_nodes": 45}
