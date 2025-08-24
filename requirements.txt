@@ -1,0 +1,8 @@
+jaclang
+mtllm
+mtllm[google]
+jac-cloud
+jac-streamlit
+requests
+GitPython
+pathspec
