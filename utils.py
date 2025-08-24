@@ -11,7 +11,16 @@ def is_path_valid_up_to_parent(path: str) -> bool:
 
     if  re.match(pattern, path):
         parent_path = Path(path).parent
-        return parent_path.exists() and parent_path.is_dir()
+        parent_path_exists = parent_path.exists() and parent_path.is_dir()
+
+        if parent_path_exists:
+            if os.path.exists(path):
+                return True
+            else:
+                os.mkdir(path)
+                return True
+        
+        return parent_path_exists
     else:
         return False
 

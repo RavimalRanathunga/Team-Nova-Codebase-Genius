@@ -22,7 +22,6 @@ node Agent
 
 node managerAgent
 {
-    has doc_path:str = "";
     has github_url:str = "";
     has message:str = message;
     has repo_path:str = "";
@@ -144,10 +143,24 @@ with entry
     while True
     {
         github_url=input("Enter GitHub URL:");
-        doc_path=input("Enter folder path to save documents:");
+        doc_path=input("Enter folder path to save documents(or keep blank to create a docs folder inside the repo):\n");
 
         repo_name:str=get_repo_name_from_url(github_url);
         repo_path:str=os.path.join(os.getcwd(),repo_name);
+
+        if(len(doc_path) == 0)
+        {
+            doc_path=os.path.join(repo_path,"docs");
+            print(f"Document path set to {doc_path}");
+        }
+        else
+        {
+            if not is_path_valid_up_to_parent(doc_path)
+            {
+                print("Invalid folder path");
+                break;
+            }
+        }
 
         if not validate_github_url(github_url)
         {
@@ -155,13 +168,7 @@ with entry
             break;
         }
 
-        if not is_path_valid_up_to_parent(doc_path)
-        {
-            print("Invalid folder path");
-            break;
-        }
-
-        manager_agent=root++>managerAgent(doc_path=doc_path,github_url=github_url,repo_path=repo_path);
+        manager_agent=root++>managerAgent(github_url=github_url,repo_path=repo_path);
         manager_agent++>repoMapperAgent(repo_path=repo_path);
         manager_agent++>codeAnalyzerAgent();
         manager_agent++>docGenieAgent(doc_path=doc_path);
