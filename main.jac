@@ -1,7 +1,9 @@
 import from mtllm {Model}
-import from utils {validate_github_url,is_path_valid_up_to_parent}
+import from utils {validate_github_url,is_path_valid_up_to_parent,dict_to_tree,message}
 import os;
-import from tools {get_repo_name_from_url,clone_repo_to_current_dir}
+import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes}
+import from typing {Dict,Any}
+import from pathspec {PathSpec}
 
 glob llm = Model(model_name = "gemini/gemini-2.0-flash");
 
@@ -20,10 +22,10 @@ node Agent
 
 node managerAgent
 {
-    has doc_path:str="";
-    has github_url:str="";
-    has message:str=f"As a supervisor agent your first task is to clone a github repository from provided {github_url} if first step is fulfiled if and only if then navigate to the next Agent using AgentType and stop the program.";
-    has repo_path:str="";
+    has doc_path:str = "";
+    has github_url:str = "";
+    has message:str = message;
+    has repo_path:str = "";
 
     """use to decide the next step of the agent"""
     def decide (message:str,chat_history:list[dict]) -> AgentType by llm(verbose=True,method="ReAct");
@@ -42,18 +44,16 @@ node managerAgent
             print(f"Navigating to {response}");
             chat_history_message:dict[str,str] = self.generate_chat_history_message(f"Navigating to {response}");
             visitor.chat_history.append(chat_history_message);
-            print(visitor.chat_history);
 
             visit[-->](`?Agent)(?agent_type==response);
         }
         else
         {
-            repository_clone_message:str=self.clone_github_repository(self.github_url,self.repo_path);
+            repository_clone_message:str = self.clone_github_repository(self.github_url,self.repo_path);
             response:AgentType = self.decide(self.message,visitor.get_last_five_messages());
             print(f"Navigating to {response}");
             chat_history_message:dict[str,str] = self.generate_chat_history_message(repository_clone_message + f"Navigating to {response}");
             visitor.chat_history.append(chat_history_message);
-            print(visitor.chat_history);
 
             visit[-->](`?Agent)(?agent_type==response);
         }
@@ -64,15 +64,34 @@ node repoMapperAgent(Agent)
 {
     has agent_type:AgentType=AgentType.MapperAgent;
     has repo_path:str="";
-    has folder_structure:list[dict]=[];
 
-    def get_dotgitignore_file_content(repo_path:str) -> list[str] by llm(methods="ReAct");
+    """Generate a message about your actions to add to the chat_history"""
+    def generate_chat_history_message(message:str) -> dict[str,str] by llm();
+
+    """Generate summeries for readme.md files in a given code_structure"""
+    def generate_readme_files_summeries(readme_contents:dict[str,str]) -> dict[str,str] by llm();
 
     can map_repo with codeBaseGenius entry
     {
-    #    gitignore_path:str = load_gitignore(self.repo_path);
-    #    gitignore_content:list[str] = self.get_dotgitignore_file_content(self.repo_path);
-    #    print(gitignore_content);
+        print("Building Repository Folder Structure...");
+        gitignore:PathSpec = load_gitignore(self.repo_path);
+        structure:Dict[str,Any] = build_structure(self.repo_path,gitignore);
+        folders_dict:dict[str,str] = get_folder_dict(self.repo_path,gitignore);
+        readme_contents:dict[str,str] = extract_readmes(structure);
+
+        visitor.code_structure = structure;
+        visitor.folders_dict = folders_dict;
+        visitor.readme_contents = readme_contents;
+        
+        tree:str = dict_to_tree(structure);
+        
+        print("Generating README Files Summeries...");
+        readme_file_summeries:dict[str,str] = self.generate_readme_files_summeries(readme_contents);
+
+        chat_history_message:dict[str,str] = self.generate_chat_history_message(f"Generate the repo structure " + tree + "Generate summeries for readme.md files");
+        visitor.chat_history.append(chat_history_message);
+
+        visit[<--];
     }
 }
 
@@ -102,6 +121,9 @@ node docGenieAgent(Agent)
 walker codeBaseGenius
 {
     has chat_history:list[dict];
+    has code_structure:Dict[str,Any] = {};
+    has folders_dict:dict[str,str] = {};
+    has readme_contents:dict[str,str] = {};
 
     def get_last_five_messages() -> list[dict]
     {

@@ -5,3 +5,4 @@ jac-cloud
 jac-streamlit
 requests
 GitPython
+pathspec
