@@ -1,7 +1,8 @@
 import from mtllm {Model}
-import from utils {validate_github_url,is_path_valid_up_to_parent,dict_to_tree,message}
+import from mtllm.types {Image}
+import from utils {validate_github_url,is_path_valid_up_to_parent,dict_to_tree,message,generate_images_using_mermaid_diagrams,instruction_to_generate_folder_structure_mermaid_diagram,instruction_to_generate_class_diagram_mermaid_diagram,instruction_to_generate_sequence_diagram_mermaid_diagram}
 import os;
-import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes,create_readme_file}
+import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes,create_readme_file,update_main_readme,get_links_of_generated_readmes_and_images}
 import from typing {Dict,Any}
 import from pathspec {PathSpec}
 import from build_tree_sitter {traverse_and_parse}
@@ -33,33 +34,7 @@ node managerAgent
     """Tool to clone the repositories from the github"""
     def clone_github_repository(github_url:str,repo_path:str) -> str by llm(tools=[clone_repo_to_current_dir,get_repo_name_from_url],verbose=True,method="ReAct");
 
-    """Generate a message about your actions to add to the chat_history"""
-    def generate_chat_history_message(message:str) -> dict[str,str] by llm();
-
-    can route with codeBaseGenius entry
-    {
-        if os.path.exists(self.repo_path)
-        {
-            response:AgentType = self.decide(self.message,visitor.get_last_five_messages());
-            print(f"Navigating to {response}");
-            
-            chat_history_message:dict[str,str] = self.generate_chat_history_message(f"Navigating to {response}");
-            visitor.chat_history.append(chat_history_message);
-
-            visit[-->](`?Agent)(?agent_type==response);
-        }
-        else
-        {
-            repository_clone_message:str = self.clone_github_repository(self.github_url,self.repo_path);
-            response:AgentType = self.decide(self.message,visitor.get_last_five_messages());
-            print(f"Navigating to {response}");
-
-            chat_history_message:dict[str,str] = self.generate_chat_history_message(repository_clone_message + f"Navigating to {response}");
-            visitor.chat_history.append(chat_history_message);
-
-            visit[-->](`?Agent)(?agent_type==response);
-        }
-    }
+    can route with codeBaseGenius entry;
 }
 
 node repoMapperAgent(Agent)
@@ -67,49 +42,17 @@ node repoMapperAgent(Agent)
     has agent_type:AgentType = AgentType.MapperAgent;
     has repo_path:str = "";
 
-    """Generate a message about your actions to add to the chat_history"""
-    def generate_chat_history_message(message:str) -> dict[str,str] by llm();
-
     """Generate summeries for readme.md files in a given code_structure"""
     def generate_readme_files_summeries(readme_contents:dict[str,str]) -> dict[str,str] by llm();
 
-    can map_repo with codeBaseGenius entry
-    {
-        print("Building Repository Folder Structure...");
-        gitignore:PathSpec = load_gitignore(self.repo_path);
-        structure:Dict[str,Any] = build_structure(self.repo_path,gitignore);
-        folders_dict:dict[str,str] = get_folder_dict(self.repo_path,gitignore);
-        readme_contents:dict[str,str] = extract_readmes(structure);
-
-        visitor.code_structure = structure;
-        visitor.folders_dict = folders_dict;
-        visitor.readme_contents = readme_contents;
-        
-        tree:str = dict_to_tree(structure);
-        
-        print("Generating README Files Summeries...");
-        readme_file_summeries:dict[str,str] = self.generate_readme_files_summeries(readme_contents);
-
-        chat_history_message:dict[str,str] = self.generate_chat_history_message(f"Generate the repo structure " + tree + "Generate summeries for readme.md files");
-        visitor.chat_history.append(chat_history_message);
-
-        visit[<--];
-    }
+    can map_repo with codeBaseGenius entry;
 }
 
 node codeAnalyzerAgent(Agent)
 {
     has agent_type:AgentType = AgentType.AnalyzerAgent;
 
-    can analyze_code with codeBaseGenius entry
-    {
-        analysis:dict = traverse_and_parse(visitor.code_structure);
-        print("Code Analysis Complete.");
-        visitor.chat_history.append({"action":"Code Analysis Complete."});
-        visitor.code_analysis = analysis;
-    
-        visit[<--];
-    }
+    can analyze_code with codeBaseGenius entry;
 }
 
 node docGenieAgent(Agent)
@@ -117,22 +60,22 @@ node docGenieAgent(Agent)
     has agent_type:AgentType = AgentType.DocGenie;
     has doc_path:str = "";
 
-    def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict) -> str by llm(tools=[create_readme_file],verbose=True,method="ReAct");
+    """Generaete a README file in markdown format for each folder using the provided code_analysis and readme_summeries.readme content should be contain relevent information about files,classes and functions in the folder with images if needed to show relationships and dependencies"""
+    def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict) -> str by llm(tools=[create_readme_file,generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
 
-    can generate_docs with codeBaseGenius entry
-    {
-        if not os.path.exists(self.doc_path)
-        {
-            os.mkdir(self.doc_path);
-            self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis);
-            print("Documentation Generation Complete.");
-        }
-        else
-        {
-            self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis);
-            print("Documentation Generation Complete.");
-        }
-    }
+    """Generate a visual representation of the folder structure for each folder in the repository using mermaid diagrams and save it as an image in the specified path"""
+    def generate_folder_structure_as_an_image(structure:str,doc_path:str,instruction_to_generate_folder_structure_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
+
+    """Generate a class diagram using mermaid diagrams and save it as an image in the specified path"""
+    def generate_class_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_class_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
+
+    """Generate a sequence diagram using mermaid diagrams and save it as an image in the specified path"""
+    def generate_sequence_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_sequence_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
+
+    """Update the main README file in markdown format to include links to all generated README files and a summary of main readme file in the repository and generated images and save the file in the doc_path"""
+    def update_main_readme(doc_path:str,readme_summeries:dict[str,str]) -> str by llm(tools=[update_main_readme,get_links_of_generated_readmes_and_images],method="ReAct");
+
+    can generate_docs with codeBaseGenius entry;
 }
 
 walker codeBaseGenius
@@ -141,7 +84,7 @@ walker codeBaseGenius
     has code_structure:Dict[str,Any] = {};
     has folders_dict:dict[str,str] = {};
     has readme_contents:dict[str,str] = {};
-    has codde_analysis:dict = {};
+    has code_analysis:dict = {};
 
     def get_last_five_messages() -> list[dict]
     {

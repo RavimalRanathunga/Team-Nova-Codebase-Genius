@@ -6,7 +6,8 @@ import from pathspec {PathSpec}
 """
 Tool to get repo name from a given github URL
 Example input to the tool
-{"github_url":"github_url"} 
+{"github_url":"github_url"}
+Example output from the tool - repo_name:str 
 """
 def get_repo_name_from_url(github_url:str) -> str
 {
@@ -17,6 +18,7 @@ def get_repo_name_from_url(github_url:str) -> str
 use this tool to clone a github repository
 Example input to the tool
 {"github_url":"github_url","repo_path","repo_path","repo_name","repo_name"}
+Example output from the tool - repo_path:str
 """
 def clone_repo_to_current_dir(github_url:str,repo_path:str,repo_name:str) -> str
 {
@@ -34,7 +36,11 @@ def clone_repo_to_current_dir(github_url:str,repo_path:str,repo_name:str) -> str
 }
 
 
-"""Load .gitignore patterns if available."""
+"""Load .gitignore patterns if available.
+Example input to the tool
+{"repo_path":"repo_path"}
+Example output from the tool - spec:PathSpec
+"""
 def load_gitignore(repo_path: str) -> PathSpec
 {
     gitignore_path = os.path.join(repo_path, ".gitignore");
@@ -50,7 +56,9 @@ def load_gitignore(repo_path: str) -> PathSpec
 
 """
 Recursively build folder structure dictionary ignoring .gitignore files/folders.
-- structure_dict: nested dictionary with files and folders
+Example input to the tool
+{"repo_path":"repo_path","spec":PathSpec}
+Example output from the tool - structure:Dict[str,Any]
 """
 def build_structure(
     repo_path: str, 
@@ -92,7 +100,11 @@ def build_structure(
     return structure;
 }
 
-"""Get folder paths for a repo"""
+"""Get folder paths for a repo
+Example input to the tool
+{"repo_path":"repo_path","spec":PathSpec}
+Example output from the tool - folders_dict:dict[str,str]
+"""
 def get_folder_dict(repo_path:str,spec:PathSpec) -> dict[str,str]
 {
     folders_dict = {};
@@ -129,8 +141,9 @@ def get_folder_dict(repo_path:str,spec:PathSpec) -> dict[str,str]
 
 """
 Tool to traverse structure dictionary to find readme files and return their content.
-:param structure: The repo structure dictionary
-:return: Dictionary {readme_path: file_content}
+Example input to the tool
+{"structure":Dict[str,Any]}
+Example output from the tool - readme_contents:dict[str,str]
 """
 def extract_readmes(structure: Dict[str,Any]) -> dict[str,str]
 {
@@ -173,7 +186,12 @@ def extract_readmes(structure: Dict[str,Any]) -> dict[str,str]
     return readme_contents;
 }
 
-def create_readme_file(doc_path:str,content:str,folder_name:str) -> None
+"""Tool to create a README file in the specified path with given content
+Example input to the tool
+{"doc_path":"doc_path","content":"content","folder_name":"folder_name"}
+Example output from the tool - path:str
+"""
+def create_readme_file(doc_path:str,content:str,folder_name:str) -> str
 {
     path = os.path.join(doc_path, f"{folder_name}_README.md");
     print(f"Creating README file at: {path}");
@@ -181,4 +199,42 @@ def create_readme_file(doc_path:str,content:str,folder_name:str) -> None
     {
         f.write(content);
     }
+
+    return path;
 }
+
+"""Tool to update the main README file in the specified path with links to all generated README files and their summaries
+Example input to the tool
+{"doc_path":"doc_path","content":"content"}
+Example output from the tool - path:str
+"""
+def update_main_readme(doc_path:str,content:str) -> str
+{
+    path = os.path.join(doc_path, "_MAIN_README.md");
+    print(f"Updating MAIN README file at: {path}");
+    with open(path,"w",encoding="utf-8") as f
+    {
+        f.write(content);
+    }
+
+    return path;
+}
+
+"""Tool to get links of all generated README files in the specified doc_path
+Example input to the tool
+{"doc_path":"doc_path"}
+Example output from the tool - links:list[str]
+"""
+def get_links_of_generated_readmes_and_images(doc_path:str) -> list[str]
+{
+    links = [];
+    for file in os.listdir(doc_path)
+    {
+        if file.endswith("_README.md") and file != "_MAIN_README.md"
+        {
+            links.append(file);
+        }
+    }
+    return links;
+}
+

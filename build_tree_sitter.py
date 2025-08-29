@@ -2,8 +2,6 @@ import os
 from tree_sitter import Language, Parser
 import tree_sitter_python
 
-# Step 1: Build the parser for Python (do this once and keep the .so file)
-# Run this once: Language.build_library("build/my-languages.so", ["tree-sitter-python"])
 PY_LANGUAGE = Language(tree_sitter_python.language())
 
 parser = Parser()
