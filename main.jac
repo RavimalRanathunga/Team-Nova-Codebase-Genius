@@ -1,8 +1,8 @@
 import from mtllm {Model}
 import from mtllm.types {Image}
-import from utils {validate_github_url,is_path_valid_up_to_parent,dict_to_tree,message,generate_images_using_mermaid_diagrams,instruction_to_generate_folder_structure_mermaid_diagram,instruction_to_generate_class_diagram_mermaid_diagram,instruction_to_generate_sequence_diagram_mermaid_diagram}
+import from utils {validate_github_url,is_path_valid_up_to_parent,dict_to_tree,message,generate_images_using_mermaid_diagrams,generate_code_structure_using_mermaid_diagrams,instruction_to_generate_code_structure_mermaid_diagram,instruction_to_generate_class_diagram_mermaid_diagram,instruction_to_generate_sequence_diagram_mermaid_diagram}
 import os;
-import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes,create_readme_file,update_main_readme,get_links_of_generated_readmes_and_images}
+import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes,create_readme_file,update_main_readme,get_links_of_generated_readmes,get_links_of_generated_images}
 import from typing {Dict,Any}
 import from pathspec {PathSpec}
 import from build_tree_sitter {traverse_and_parse}
@@ -60,11 +60,8 @@ node docGenieAgent(Agent)
     has agent_type:AgentType = AgentType.DocGenie;
     has doc_path:str = "";
 
-    """Generaete a README file in markdown format for each folder using the provided code_analysis and readme_summeries.readme content should be contain relevent information about files,classes and functions in the folder with images if needed to show relationships and dependencies"""
-    def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict) -> str by llm(tools=[create_readme_file,generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
-
-    """Generate a visual representation of the folder structure for each folder in the repository using mermaid diagrams and save it as an image in the specified path"""
-    def generate_folder_structure_as_an_image(structure:str,doc_path:str,instruction_to_generate_folder_structure_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
+    """Generaete a README file in markdown format for each folder in the repository using the provided code_analysis and readme_summeries and save in provided doc_path.readme content must contain all insightful information about all files,classes and functions in a selected folder with image of a file structure inside the folder"""
+    def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict,code_structure:str,instruction_to_generate_code_structure_mermaid_diagram:str) -> str by llm(tools=[create_readme_file,generate_code_structure_using_mermaid_diagrams,get_links_of_generated_images],verbose=True,method="ReAct");
 
     """Generate a class diagram using mermaid diagrams and save it as an image in the specified path"""
     def generate_class_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_class_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
@@ -73,9 +70,10 @@ node docGenieAgent(Agent)
     def generate_sequence_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_sequence_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
 
     """Update the main README file in markdown format to include links to all generated README files and a summary of main readme file in the repository and generated images and save the file in the doc_path"""
-    def update_main_readme(doc_path:str,readme_summeries:dict[str,str]) -> str by llm(tools=[update_main_readme,get_links_of_generated_readmes_and_images],method="ReAct");
+    def update_main_readme(doc_path:str,readme_summeries:dict[str,str]) -> str by llm(tools=[update_main_readme,get_links_of_generated_readmes,get_links_of_generated_images],method="ReAct");
 
     can generate_docs with codeBaseGenius entry;
+    
 }
 
 walker codeBaseGenius

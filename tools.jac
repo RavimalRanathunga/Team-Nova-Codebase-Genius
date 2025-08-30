@@ -225,12 +225,30 @@ Example input to the tool
 {"doc_path":"doc_path"}
 Example output from the tool - links:list[str]
 """
-def get_links_of_generated_readmes_and_images(doc_path:str) -> list[str]
+def get_links_of_generated_readmes(doc_path:str) -> list[str]
 {
     links = [];
     for file in os.listdir(doc_path)
     {
-        if file.endswith("_README.md") and file != "_MAIN_README.md"
+        if file.endswith("_README.md") and file != "_MAIN_README.md" 
+        {
+            links.append(file);
+        }
+    }
+    return links;
+}
+
+"""Tool to get links of all generated images in the specified doc_path
+Example input to the tool
+{"doc_path":"doc_path"}
+Example output from the tool - links:list[str]
+"""
+def get_links_of_generated_images(doc_path:str) -> list[str]
+{
+    links = [];
+    for file in os.listdir(doc_path)
+    {
+        if file.endswith(".png") or file.endswith(".jpg") or file.endswith(".jpeg")
         {
             links.append(file);
         }

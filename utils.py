@@ -64,6 +64,15 @@ def generate_images_using_mermaid_diagrams(structure:str,doc_path:str,image_name
     plt.axis('off') # allow to hide axis
     plt.savefig(f'{doc_path}/{image_name}.png', dpi=300, bbox_inches='tight')
 
+def generate_code_structure_using_mermaid_diagrams(structure:str,doc_path:str,folder_name:str) -> None:
+    graphbytes = structure.encode("utf8")
+    base64_bytes = base64.urlsafe_b64encode(graphbytes)
+    base64_string = base64_bytes.decode("ascii")
+    img = im.open(io.BytesIO(requests.get('https://mermaid.ink/img/' + base64_string).content))
+    plt.imshow(img)
+    plt.axis('off') # allow to hide axis
+    plt.savefig(f'{doc_path}/{folder_name}.png', dpi=300, bbox_inches='tight')
+
 message = """
             As a supervisor agent your first task is to clone a github repository from provided {github_url} if first step is fulfiled if and only if then navigate to the next Agent using AgentType.
             Your ultimate goal is to create comprehensive and complete documentatio for a repository in a given {github_url}
@@ -74,8 +83,8 @@ message = """
                 3.docGenieAgent - Generate comprehensive and complete documentation of the repository.
           """
 
-instruction_to_generate_folder_structure_mermaid_diagram = """
-        Generate a mermaid diagram that represents the folder structure of the repository.The input formats to the {generate_images_using_mermaid_diagrams} function should be a strings for {structure} and {path} and {image_name}.
+instruction_to_generate_code_structure_mermaid_diagram = """
+        Generate a mermaid diagram that represents the folder and file structure of a specific folder.The input formats to the {generate_code_structure_using_mermaid_diagrams} function should be a strings for {structure} and {doc_path} and {folder_name}.
         The {structure} should be a string representation of the folder structure in mermaid format.
         The Example format of the {structure} is as follows:
         graph TD;
@@ -86,8 +95,8 @@ instruction_to_generate_folder_structure_mermaid_diagram = """
             C --> F[Subfolder1];
             F --> G[File3.py];
             C --> H[File4.py];
-        The {path} should be the path where the generated diagram image will be saved.
-        The {image_name} should be the name of the generated diagram image without extension.
+        The {doc_path} should be the path where the generated diagram image will be saved.
+        The {folder_name} should be the name of the folder considering to generated diagram image without extension.
         """
 
 instruction_to_generate_class_diagram_mermaid_diagram = """

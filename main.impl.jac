@@ -58,9 +58,8 @@ impl docGenieAgent.generate_docs
     {
         os.mkdir(self.doc_path);
 
-        print(self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis));
+        print(self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis,dict_to_tree(visitor.code_structure),instruction_to_generate_code_structure_mermaid_diagram));
 
-        print(self.generate_folder_structure_as_an_image(dict_to_tree(visitor.code_structure),self.doc_path,instruction_to_generate_folder_structure_mermaid_diagram));
         print(self.generate_class_diagram_as_an_image(self.doc_path,visitor.code_analysis,instruction_to_generate_class_diagram_mermaid_diagram));
         print(self.generate_sequence_diagram_as_an_image(self.doc_path,visitor.code_analysis,instruction_to_generate_sequence_diagram_mermaid_diagram));
 
@@ -68,12 +67,12 @@ impl docGenieAgent.generate_docs
         print("Documentation Generation Complete.");
 
         visitor.chat_history.append({"action":"Documentation Generation Complete."});
+        disengage;
     }
     else
     {
-        print(self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis));
+        print(self.generate_readme_files_for_each_folder(visitor.folders_dict,visitor.readme_contents,self.doc_path,visitor.code_analysis,dict_to_tree(visitor.code_structure),instruction_to_generate_code_structure_mermaid_diagram));
         
-        print(self.generate_folder_structure_as_an_image(dict_to_tree(visitor.code_structure),self.doc_path,instruction_to_generate_folder_structure_mermaid_diagram));
         print(self.generate_class_diagram_as_an_image(self.doc_path,visitor.code_analysis,instruction_to_generate_class_diagram_mermaid_diagram));
         print(self.generate_sequence_diagram_as_an_image(self.doc_path,visitor.code_analysis,instruction_to_generate_sequence_diagram_mermaid_diagram));
 
@@ -81,5 +80,6 @@ impl docGenieAgent.generate_docs
         print("Documentation Generation Complete.");
 
         visitor.chat_history.append({"action":"Documentation Generation Complete."});
+        disengage;
     }
 }
