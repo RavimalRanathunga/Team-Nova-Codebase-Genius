@@ -117,9 +117,10 @@ def traverse_and_parse(structure: dict) -> dict:
     codebase_modules = set()
     collect_modules(structure, codebase_modules)
 
+    #traverse and parse the structure
     def recurse(node):
         for name, child in node.items():
-            if isinstance(child, dict):  # folder
+            if isinstance(child, dict): 
                 recurse(child)
             elif isinstance(child, list) and name.endswith(".py"):
                 with open(child[1], "r", encoding="utf-8") as f:

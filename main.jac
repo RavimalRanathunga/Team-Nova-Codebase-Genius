@@ -60,7 +60,7 @@ node docGenieAgent(Agent)
     has agent_type:AgentType = AgentType.DocGenie;
     has doc_path:str = "";
 
-    """Generaete a README file in markdown format for each folder in the repository using the provided code_analysis and readme_summeries and save in provided doc_path.readme content must contain all insightful information about all files,classes and functions in a selected folder with image of a file structure inside the folder"""
+    """Generaete a README file in markdown format for each folder in the repository using the provided code_analysis and readme_summeries and save in provided doc_path.readme content must contain all insightful information about all files,classes and functions in a selected folder with image of a file structure inside the folder. Do not create a main readme file again."""
     def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict,code_structure:str,instruction_to_generate_code_structure_mermaid_diagram:str) -> str by llm(tools=[create_readme_file,generate_code_structure_using_mermaid_diagrams,get_links_of_generated_images],verbose=True,method="ReAct");
 
     """Generate a class diagram using mermaid diagrams and save it as an image in the specified path"""
@@ -69,7 +69,7 @@ node docGenieAgent(Agent)
     """Generate a sequence diagram using mermaid diagrams and save it as an image in the specified path"""
     def generate_sequence_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_sequence_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
 
-    """Update the main README file in markdown format to include links to all generated README files and a summary of main readme file in the repository and generated images and save the file in the doc_path"""
+    """Update the main README file in markdown format to include links to all generated README files and generated images and a summary of main readme file in the repository and save the file in the doc_path"""
     def update_main_readme(doc_path:str,readme_summeries:dict[str,str]) -> str by llm(tools=[update_main_readme,get_links_of_generated_readmes,get_links_of_generated_images],method="ReAct");
 
     can generate_docs with codeBaseGenius entry;
@@ -102,8 +102,13 @@ with entry
 {
     while True
     {
-        github_url = input("Enter GitHub URL:");
+        print("### Welcome to CodeBase Genius! ###\n");
+
+        github_url = input("Enter GitHub URL:\n");
+        print("\n");
+
         doc_path = input("Enter folder path to save documents(or keep blank to create a docs folder inside the repo):\n");
+        print("\n");
 
         repo_name:str = get_repo_name_from_url(github_url);
         repo_path:str = os.path.join(os.getcwd(),repo_name);

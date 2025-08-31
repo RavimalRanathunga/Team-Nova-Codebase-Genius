@@ -22,17 +22,52 @@ Team Nova Codebase Genius is an automated documentation generator for Python Git
 
 ## Usage
 
-1. **Install dependencies:**
-   ```sh
-   pip install -r requirements.txt
-   ```
-2. **Run the main program:**
-   ```sh
-   jac run main.jac
-   ```
-3. **Follow prompts:**
-   - Enter the GitHub repository URL.
-   - Specify the folder path to save documentation (or leave blank for default).
+### 1. Create a Virtual Environment
+
+It is recommended to use a Python virtual environment to manage dependencies:
+
+```sh
+python -m venv venv
+```
+
+Activate the environment:
+
+- **Windows:**
+  ```sh
+  venv\Scripts\activate
+  ```
+- **Linux/macOS:**
+  ```sh
+  source venv/bin/activate
+  ```
+
+### 2. Install dependencies
+
+```sh
+pip install -r requirements.txt
+```
+
+### 3. Set up environment variables
+
+Create a `.env` file in the project root if required by your agents or LLM integrations.  
+Example `.env` content:
+
+```
+API_KEY=your_api_key_here
+```
+change the model name in the main.jac according to your LLM provider and model being used.
+Refer to Jaseci documentation to find supported models.
+
+### 4. Run the main program
+
+```sh
+jac run main.jac
+```
+
+### 5. Follow prompts
+
+- Enter the GitHub repository URL.
+- Specify the folder path to save documentation (or leave blank for create a docs folder inside the repository).
 
 ## Project Structure
 
@@ -66,4 +101,4 @@ Team Nova Codebase Genius is an automated documentation generator for Python Git
 
 ---
 
-*Automate and streamline documentation for Python GitHub repositories using advanced agent-based techniques and
+*Automate and streamline documentation for Python GitHub repositories using advanced agent-based techniques

@@ -3,7 +3,6 @@ from pathlib import Path
 import os
 import base64
 import io, requests
-from IPython.display import Image, display
 from PIL import Image as im
 import matplotlib.pyplot as plt
 
