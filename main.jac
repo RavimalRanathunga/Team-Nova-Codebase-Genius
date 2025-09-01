@@ -60,7 +60,7 @@ node docGenieAgent(Agent)
     has agent_type:AgentType = AgentType.DocGenie;
     has doc_path:str = "";
 
-    """Generaete a README file in markdown format for each folder in the repository using the provided code_analysis and readme_summeries and save in provided doc_path.readme content must contain all insightful information about all files,classes and functions in a selected folder with image of a file structure inside the folder. Do not create a main readme file again."""
+    """Generaete a README file in proper markdown format for each folder in the repository using the provided code_analysis and readme_summeries and save in provided doc_path.readme content must contain all insightful information about all files,classes and functions in a selected folder with image of a file structure inside the folder. Do not create a main readme file again."""
     def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict,code_structure:str,instruction_to_generate_code_structure_mermaid_diagram:str) -> str by llm(tools=[create_readme_file,generate_code_structure_using_mermaid_diagrams,get_links_of_generated_images],verbose=True,method="ReAct");
 
     """Generate a class diagram using mermaid diagrams and save it as an image in the specified path"""

@@ -10,4 +10,3 @@ tree-sitter
 tree_sitter_python
 IPython
 matplotlib
-dotenv

@@ -67,7 +67,7 @@ impl docGenieAgent.generate_docs
         print("Documentation Generation Complete.");
 
         visitor.chat_history.append({"action":"Documentation Generation Complete."});
-        exit;
+        disengage;
     }
     else
     {
@@ -80,6 +80,6 @@ impl docGenieAgent.generate_docs
         print("Documentation Generation Complete.");
 
         visitor.chat_history.append({"action":"Documentation Generation Complete."});
-        exit;
+        disengage;
     }
 }
