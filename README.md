@@ -49,12 +49,13 @@ pip install -r requirements.txt
 
 ### 3. Set up environment variables
 
-Create a `.env` file in the project root if required by your agents or LLM integrations.  
+Create a `.env` file in the project root required by agents and LLM integrations.  
 Example `.env` content:
 
 ```
 API_KEY=your_api_key_here
 ```
+
 change the model name in the main.jac according to your LLM provider and model being used.
 Refer to Jaseci documentation to find supported models.
 
