@@ -1,5 +1,6 @@
 impl managerAgent.route
 {
+    #check whether the repo is already cloned or not
     if os.path.exists(self.repo_path)
     {
         response:AgentType = self.decide(self.message,visitor.get_last_five_messages());
@@ -24,18 +25,17 @@ impl managerAgent.route
 impl repoMapperAgent.map_repo
 {
     print("Building Repository Folder Structure...");
-    gitignore:PathSpec = load_gitignore(self.repo_path);
+    gitignore:PathSpec = load_gitignore(self.repo_path);#get the .gitignore patterns
     structure:Dict[str,Any] = build_structure(self.repo_path,gitignore);
     folders_dict:dict[str,str] = get_folder_dict(self.repo_path,gitignore);
     readme_contents:dict[str,str] = extract_readmes(structure);
-
-    visitor.code_structure = structure;
-    visitor.folders_dict = folders_dict;
-    visitor.readme_contents = readme_contents;
     
     print("Generating README Files Summeries...");
     readme_file_summeries:dict[str,str] = self.generate_readme_files_summeries(readme_contents);
 
+    visitor.code_structure = structure;
+    visitor.folders_dict = folders_dict;
+    visitor.readme_contents = readme_file_summeries;
     visitor.chat_history.append({"action":"Generate the repo structure and Generate summeries for readme.md files"});
 
     visit[<--];

@@ -55,6 +55,7 @@ def dict_to_tree(structure: dict, indent: str = "") -> str:
 
 
 def generate_images_using_mermaid_diagrams(structure:str,doc_path:str,image_name:str) -> None:
+    """Generate and save a mermaid diagram as an image file."""
     graphbytes = structure.encode("utf8")
     base64_bytes = base64.urlsafe_b64encode(graphbytes)
     base64_string = base64_bytes.decode("ascii")
@@ -64,6 +65,7 @@ def generate_images_using_mermaid_diagrams(structure:str,doc_path:str,image_name
     plt.savefig(f'{doc_path}/{image_name}.png', dpi=300, bbox_inches='tight')
 
 def generate_code_structure_using_mermaid_diagrams(structure:str,doc_path:str,folder_name:str) -> None:
+    """Generate and save a code_structure mermaid diagram as an image file."""
     graphbytes = structure.encode("utf8")
     base64_bytes = base64.urlsafe_b64encode(graphbytes)
     base64_string = base64_bytes.decode("ascii")
