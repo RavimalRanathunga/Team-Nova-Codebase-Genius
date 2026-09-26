@@ -10,9 +10,9 @@ with entry
     parser.language = PY_LANGUAGE;
 }
 
+"""Parse code and extract classes, functions, relationships, line numbers, import types, and function calls."""
 def parse_code(code:str,file_path:str,codebase_modules:set | None = None) -> dict
 {
-    """Parse code and extract classes, functions, relationships, line numbers, import types, and function calls."""
     tree = parser.parse(bytes(code,"utf8"));
     root_node = tree.root_node;
 
@@ -145,9 +145,9 @@ def parse_code(code:str,file_path:str,codebase_modules:set | None = None) -> dic
     return result;
 }
 
+"""Traverse the folder structure and parse code files with Tree-sitter."""
 def traverse_and_parse(structure:dict) -> dict
 {
-    """Traverse the folder structure and parse code files with Tree-sitter."""
     analysis = {};
 
     #Collect all module names in the codebase for import classification
