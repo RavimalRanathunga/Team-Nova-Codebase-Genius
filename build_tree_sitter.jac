@@ -25,14 +25,14 @@ def parse_code(code:str,file_path:str,codebase_modules:set | None = None) -> dic
         "code": code
     };
 
-    def get_text(node:object) -> str
+    def get_text(`node:object) -> str
     {
-        return code[node.start_byte:node.end_byte];
+        return code[`node.start_byte:`node.end_byte];
     }
 
-    def get_lines(node:object) -> tuple
+    def get_lines(`node:object) -> tuple
     {
-        return (node.start_point[0] + 1,node.end_point[0] + 1);
+        return (`node.start_point[0] + 1,`node.end_point[0] + 1);
     }
 
     def classify_import(import_text:str) -> str
@@ -52,44 +52,44 @@ def parse_code(code:str,file_path:str,codebase_modules:set | None = None) -> dic
         return "external";
     }
 
-    def walk(node:object,parent_class:str | None = None) -> None
+    def walk(`node:object,parent_class:str | None = None) -> None
     {
-        if node.type == "import_statement"
+        if `node.type == "import_statement"
         {
-            import_text = get_text(node);
+            import_text = get_text(`node);
             import_type = classify_import(import_text);
             result["imports"].append({
                 "text": import_text,
-                "lines": get_lines(node),
+                "lines": get_lines(`node),
                 "type": import_type
             });
         }
-        elif node.type == "class_definition"
+        elif `node.type == "class_definition"
         {
-            class_name = get_text(node.child_by_field_name("name"));
-            (start_line,end_line) = get_lines(node);
+            class_name = get_text(`node.child_by_field_name("name"));
+            (start_line,end_line) = get_lines(`node);
             result["classes"][class_name] = {
                 "methods": {},
                 "inherits": [],
                 "lines": (start_line,end_line)
             };
-            bases = node.child_by_field_name("superclasses");
+            bases = `node.child_by_field_name("superclasses");
             if bases
             {
                 result["classes"][class_name]["inherits"] = [
                     get_text(c) for c in bases.children if c.type == "identifier"
                 ];
             }
-            for child in node.children
+            for child in `node.children
             {
                 walk(child,parent_class=class_name);
             }
         }
-        elif node.type == "function_definition"
+        elif `node.type == "function_definition"
         {
-            func_name = get_text(node.child_by_field_name("name"));
-            params = node.child_by_field_name("parameters");
-            (start_line,end_line) = get_lines(node);
+            func_name = get_text(`node.child_by_field_name("name"));
+            params = `node.child_by_field_name("parameters");
+            (start_line,end_line) = get_lines(`node);
             param_list = [];
             if params
             {
@@ -114,27 +114,27 @@ def parse_code(code:str,file_path:str,codebase_modules:set | None = None) -> dic
                 result["functions"][func_name] = func_info;
             }
         }
-        elif node.type == "call"
+        elif `node.type == "call"
         {
             #Function call node
-            func_node = node.child_by_field_name("function");
+            func_node = `node.child_by_field_name("function");
             if func_node
             {
                 func_name = get_text(func_node);
-                (start_line,end_line) = get_lines(node);
+                (start_line,end_line) = get_lines(`node);
                 result["function_calls"].append({
                     "name": func_name,
                     "lines": (start_line,end_line)
                 });
             }
-            for child in node.children
+            for child in `node.children
             {
                 walk(child,parent_class);
             }
         }
         else
         {
-            for child in node.children
+            for child in `node.children
             {
                 walk(child,parent_class);
             }
@@ -151,9 +151,9 @@ def traverse_and_parse(structure:dict) -> dict
     analysis = {};
 
     #Collect all module names in the codebase for import classification
-    def collect_modules(node:dict,modules:set) -> None
+    def collect_modules(`node:dict,modules:set) -> None
     {
-        for (name,child) in node.items()
+        for (name,child) in `node.items()
         {
             if isinstance(child,dict)
             {
@@ -170,9 +170,9 @@ def traverse_and_parse(structure:dict) -> dict
     collect_modules(structure,codebase_modules);
 
     #traverse and parse the structure
-    def recurse(node:dict) -> None
+    def recurse(`node:dict) -> None
     {
-        for (name,child) in node.items()
+        for (name,child) in `node.items()
         {
             if isinstance(child,dict)
             {
