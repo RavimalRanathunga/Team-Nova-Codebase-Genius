@@ -1,6 +1,6 @@
 # Team Nova Codebase Genius
 
-Team Nova Codebase Genius is an automated documentation generator for Python GitHub repositories, built using Jaclang and Python. It leverages multi-agent collaboration and large language models (LLMs) to analyze codebases and produce comprehensive documentation, including code structure, relationships, and visual diagrams.
+Team Nova Codebase Genius is an automated documentation generator for Python GitHub repositories, built entirely in Jac. It leverages multi-agent collaboration and large language models (LLMs) to analyze codebases and produce comprehensive documentation, including code structure, relationships, and visual diagrams.
 
 ## Features
 
@@ -22,29 +22,20 @@ Team Nova Codebase Genius is an automated documentation generator for Python Git
 
 ## Usage
 
-### 1. Create a Virtual Environment
+### 1. Install the Jac toolchain
 
-It is recommended to use a Python virtual environment to manage dependencies:
+Jac ships as a single self-contained binary (no Python/pip install needed for the toolchain itself):
 
 ```sh
-python -m venv venv
+curl -fsSL https://raw.githubusercontent.com/jaseci-labs/jaseci/main/scripts/install.sh | bash
 ```
 
-Activate the environment:
+### 2. Install project dependencies
 
-- **Windows:**
-  ```sh
-  venv\Scripts\activate
-  ```
-- **Linux/macOS:**
-  ```sh
-  source venv/bin/activate
-  ```
-
-### 2. Install dependencies
+Python dependencies are declared in `jac.toml` (`[dependencies]`) instead of `requirements.txt`:
 
 ```sh
-pip install -r requirements.txt
+jac install
 ```
 
 ### 3. Set up environment variables
@@ -56,8 +47,8 @@ Example `.env` content:
 API_KEY=your_api_key_here
 ```
 
-change the model name in the main.jac according to your LLM provider and model being used.
-Refer to Jaseci documentation to find supported models.
+Change the model name in `jac.toml` (`[byllm.model]`) or `main.jac` according to your LLM provider and model being used.
+Refer to the [byLLM reference](https://docs.jaseci.org/reference/plugins/byllm/) to find supported models.
 
 ### 4. Run the main program
 
@@ -72,19 +63,18 @@ jac run main.jac
 
 ## Project Structure
 
-- `main.jac`: Main Jaclang file orchestrating agent workflow.
+- `main.jac`: Main Jac file orchestrating agent workflow.
 - `tools.jac`: Utility functions for repository operations, structure mapping, and agent operations.
-- `utils.py`: Python helpers for path validation, URL checking, and tree formatting.
-- `build_tree_sitter.py`: Python code for parsing code structure, extracting classes, functions, imports, and function calls.
-- `requirements.txt`: Python dependencies.
+- `utils.jac`: Helpers for path validation, URL checking, mermaid diagram rendering, and tree formatting.
+- `build_tree_sitter.jac`: Parses code structure, extracting classes, functions, imports, and function calls with Tree-sitter.
+- `jac.toml`: Project manifest and Python dependencies.
 - `.gitignore`: Files and folders to ignore.
 - `README.md`: Project documentation.
 
 ## Requirements
 
-- Jaclang
-- Python 3.10+
-- See `requirements.txt` for all dependencies.
+- Jac 0.34.17+
+- See `jac.toml` for all dependencies.
 
 ## How It Works
 

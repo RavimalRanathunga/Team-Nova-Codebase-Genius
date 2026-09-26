@@ -8,7 +8,7 @@ impl managerAgent.route
         
         visitor.chat_history.append({"action":f"Navigating to {response} as the repository is already cloned."});
 
-        visit[-->](`?Agent)(?agent_type==response);
+        visit [-->[?:Agent, agent_type==response]];
     }
     else
     {
@@ -18,7 +18,7 @@ impl managerAgent.route
 
         visitor.chat_history.append({"action":repository_clone_message + f" Navigating to {response}."});
 
-        visit[-->](`?Agent)(?agent_type==response);
+        visit [-->[?:Agent, agent_type==response]];
     }
 }
 
