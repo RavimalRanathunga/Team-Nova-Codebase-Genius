@@ -1,6 +1,6 @@
 # Team Nova Codebase Genius
 
-Team Nova Codebase Genius is an automated documentation generator for Python GitHub repositories, built using Jaclang and Python. It leverages multi-agent collaboration and large language models (LLMs) to analyze codebases and produce comprehensive documentation, including code structure, relationships, and visual diagrams.
+Team Nova Codebase Genius is an automated documentation generator for Python GitHub repositories, built entirely in Jac. It leverages multi-agent collaboration and large language models (LLMs) to analyze codebases and produce comprehensive documentation, including code structure, relationships, and visual diagrams.
 
 ## Features
 
@@ -63,10 +63,10 @@ jac run main.jac
 
 ## Project Structure
 
-- `main.jac`: Main Jaclang file orchestrating agent workflow.
+- `main.jac`: Main Jac file orchestrating agent workflow.
 - `tools.jac`: Utility functions for repository operations, structure mapping, and agent operations.
-- `utils.py`: Python helpers for path validation, URL checking, and tree formatting.
-- `build_tree_sitter.py`: Python code for parsing code structure, extracting classes, functions, imports, and function calls.
+- `utils.jac`: Helpers for path validation, URL checking, mermaid diagram rendering, and tree formatting.
+- `build_tree_sitter.jac`: Parses code structure, extracting classes, functions, imports, and function calls with Tree-sitter.
 - `jac.toml`: Project manifest and Python dependencies.
 - `.gitignore`: Files and folders to ignore.
 - `README.md`: Project documentation.
