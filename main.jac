@@ -1,5 +1,4 @@
-import from mtllm {Model}
-import from mtllm.types {Image}
+import from jaclang.byllm.lib {Model,Image}
 import from utils {validate_github_url,is_path_valid_up_to_parent,dict_to_tree,message,generate_images_using_mermaid_diagrams,generate_code_structure_using_mermaid_diagrams,instruction_to_generate_code_structure_mermaid_diagram,instruction_to_generate_class_diagram_mermaid_diagram,instruction_to_generate_sequence_diagram_mermaid_diagram}
 import os;
 import from tools {get_repo_name_from_url,clone_repo_to_current_dir,load_gitignore,build_structure,get_folder_dict,extract_readmes,create_readme_file,update_main_readme,get_links_of_generated_readmes,get_links_of_generated_images}
@@ -7,7 +6,7 @@ import from typing {Dict,Any}
 import from pathspec {PathSpec}
 import from build_tree_sitter {traverse_and_parse}
 
-glob llm = Model(model_name = "gemini/gemini-2.0-flash");
+glob llm = Model(model_name = "gemini/gemini-2.0-flash", config = {"verbose": True});
 
 enum AgentType
 {
@@ -29,10 +28,10 @@ node managerAgent
     has repo_path:str = "";
 
     """use to decide the next step of the agent"""
-    def decide (message:str,chat_history:list[dict]) -> AgentType by llm(verbose=True,method="ReAct");
+    def decide (message:str,chat_history:list[dict]) -> AgentType by llm();
 
     """Tool to clone the repositories from the github"""
-    def clone_github_repository(github_url:str,repo_path:str) -> str by llm(tools=[clone_repo_to_current_dir,get_repo_name_from_url],verbose=True,method="ReAct");
+    def clone_github_repository(github_url:str,repo_path:str) -> str by llm(tools=[clone_repo_to_current_dir,get_repo_name_from_url]);
 
     can route with codeBaseGenius entry;
 }
@@ -61,16 +60,16 @@ node docGenieAgent(Agent)
     has doc_path:str = "";
 
     """Generaete a README file in proper markdown format for each folder in the repository using the provided code_analysis and readme_summeries and save in provided doc_path.readme content must contain all insightful information about all files,classes and functions in a selected folder with image of a file structure inside the folder. Do not create a main readme file again."""
-    def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict,code_structure:str,instruction_to_generate_code_structure_mermaid_diagram:str) -> str by llm(tools=[create_readme_file,generate_code_structure_using_mermaid_diagrams,get_links_of_generated_images],verbose=True,method="ReAct");
+    def generate_readme_files_for_each_folder(folders_dict:dict[str,str],readme_summeries:dict[str,str],doc_path:str,code_analysis:dict,code_structure:str,instruction_to_generate_code_structure_mermaid_diagram:str) -> str by llm(tools=[create_readme_file,generate_code_structure_using_mermaid_diagrams,get_links_of_generated_images]);
 
     """Generate a class diagram using mermaid diagrams and save it as an image in the specified path"""
-    def generate_class_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_class_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
+    def generate_class_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_class_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams]);
 
     """Generate a sequence diagram using mermaid diagrams and save it as an image in the specified path"""
-    def generate_sequence_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_sequence_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams],verbose=True,method="ReAct");
+    def generate_sequence_diagram_as_an_image(doc_path:str,code_analysis:dict,instruction_to_generate_sequence_diagram_mermaid_diagram:str) -> str by llm(tools=[generate_images_using_mermaid_diagrams]);
 
     """Update the main README file in markdown format to include links to all generated README files and generated images and a summary of the main readme file in the repository and save the file in the doc_path"""
-    def update_main_readme(doc_path:str,readme_summeries:dict[str,str]) -> str by llm(tools=[update_main_readme,get_links_of_generated_readmes,get_links_of_generated_images],method="ReAct");
+    def update_main_readme(doc_path:str,readme_summeries:dict[str,str]) -> str by llm(tools=[update_main_readme,get_links_of_generated_readmes,get_links_of_generated_images]);
 
     can generate_docs with codeBaseGenius entry;
     
